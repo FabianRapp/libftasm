@@ -1,3 +1,6 @@
+obj
+a.out
+libftasm.a
 # Prerequisites
 *.d
 
