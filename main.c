@@ -4,6 +4,28 @@
 #include <stdlib.h>
 #include <time.h>
 
+/* todo:
+ [ ] - ft_atoi_base.s
+ [ ] - ft_list_push.s
+ [ ] - ft_list_remove_if.s
+ [ ] - ft_list_size.s
+ [ ] - ft_list_sort.s
+ [ ] - ft_read.s
+ [x] - ft_strcmp.s
+ [x] - ft_strcpy.s
+ [ ] - ft_strdup.s
+ [x] - ft_strlen.s
+ [ ] - ft_write.s
+ [ ] - errno test wrapper
+ [x] - remove passes/fails pointer passing and simply make them global
+ [ ] - compile warning:
+	-> /usr/bin/ld: warning: ft_strlen.o: missing .note.GNU-stack section implies executable stack
+	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+ [ ] - rename bonus files with '_bonus' suffix
+*/
+int passes = 0;
+int fails = 0;
+
 char *strgenerator(int idx) {
 	if (idx == 0) {
 		return strdup("");
@@ -25,18 +47,18 @@ char *strgenerator(int idx) {
 	return str;
 }
 
-void test_strlen(int *passes, int *fails, char *str) {
+void test_strlen(char *str) {
 	size_t std = strlen(str);
 	size_t mine = ft_strlen(str);
 	if (mine == std) {
-		(*passes)++;
+		passes++;
 	} else {
-		(*fails)++;
+		fails++;
 		printf("|%s|: strlen() = %lu; ft_strlen() = %lu\n", str, strlen(str), ft_strlen(str));
 	}
 }
 
-void test_cpy(int *passes, int *fails, char *str) {
+void test_cpy(char *str) {
 	size_t len = strlen(str) + 1000;
 	char *new_std = malloc(len);
 	char *new_mine = malloc(len);
@@ -46,57 +68,57 @@ void test_cpy(int *passes, int *fails, char *str) {
 	char *mine = ft_strcpy(new_mine, str);
 	//todo: test return value
 	if (!strcmp(new_std, new_mine)) {
-		(*passes)++;
+		(passes)++;
 	} else {
-		(*fails)++;
+		(fails)++;
 		printf("FAIL: strcpy: %s; ft_strcpy: %s\n", new_std, new_mine);
 	}
 	int diff_std = std - new_std;
 	int diff_mine = mine - new_mine;
 	if (diff_std != diff_mine) {
-		(*fails)++;
+		(fails)++;
 		printf("FAIL(|%s|): term_idx: strcpy %d; ft_strcpy: %d\n", str, diff_std, diff_mine);
 	}
 	free(new_std);
 	free(new_mine);
 }
 
-void test_cmp_eq(int *passes, int *fails, char *str) {
+void test_cmp_eq(char *str) {
 	int std = strcmp(str, str);
 	int mine = ft_strcmp(str, str);
 	if (std != mine) {
-		(*fails)++;
+		(fails)++;
 		printf("FAIL: strcmp(%s, %s) -> mine: %d\n", str, str, mine);
 	} else {
-		(*passes)++;
+		(passes)++;
 	}
 }
 
-void test_cmp_diff(int *passes, int *fails, char *str1, char *str2) {
+void test_cmp_diff(char *str1, char *str2) {
 	int std = strcmp(str1, str2);
 	int mine = ft_strcmp(str1, str2);
 	if (std != mine) {
-		(*fails)++;
+		(fails)++;
 		printf("FAIL: strcmp(%s, %s) -> std: %d; mine: %d\n", str1, str2, std, mine);
 	} else {
-		(*passes)++;
+		(passes)++;
 	}
 }
 
-void test_strs(int *passes, int *fails) {
+void test_strs() {
 	int iter_count = 10;
 	//for (int i = 0; i < iter_count; i++) {
-	for (int i = 0; !*fails; i++) {
+	for (int i = 0; !fails; i++) {
 		char *str1 = strgenerator(i);
-		test_strlen(passes, fails, str1);
-		test_cpy(passes, fails, str1);
-		test_cmp_eq(passes, fails, str1);
+		test_strlen(str1);
+		test_cpy(str1);
+		test_cmp_eq(str1);
 		for (int j = 0; j < iter_count; j++) {
 			if (j == i) {
 				continue ;
 			}
 			char *str2 = strgenerator(j);
-			test_cmp_diff(passes, fails, str1, str2);
+			test_cmp_diff(str1, str2);
 			free(str2);
 		}
 		free(str1);
@@ -104,10 +126,8 @@ void test_strs(int *passes, int *fails) {
 }
 
 int main(void) {
-	int passes = 0;
-	int fails = 0;
 	srand(time(NULL));
-	test_strs(&passes, &fails);
+	test_strs();
 
 	printf("%d passes and %d fails\n", passes, fails);
 	return 0;
