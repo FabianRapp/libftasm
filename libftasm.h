@@ -7,7 +7,7 @@ int ft_list_remove_if();
 int ft_list_size();
 int ft_list_sort();
 int ft_read();
-int ft_strcmp();
+int ft_strcmp(const char *s1, const char *s2);
 char *ft_strcpy(char *restrict dst, const char *restrict src);
 int ft_strdup();
 size_t ft_strlen(const char *s);

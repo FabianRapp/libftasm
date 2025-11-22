@@ -10,14 +10,14 @@ char *strgenerator(int idx) {
 	} else if (idx == 1) {
 		return strdup("Hello World!");
 	} else if (idx == 2) {
-		char *str = calloc(1, 1000);
+		char *str = calloc(1, 1001);
 		for (int i = 0; i < 1000; i++) {
 			str[i] = 'B';
 		}
 		return str;
 	}
 
-	char *str = calloc(1, 1000);
+	char *str = calloc(1, 1001);
 	for (int i = 0; i < 1000; i++) {
 		char c = rand() % 256;
 		str[i] = c;
@@ -61,11 +61,44 @@ void test_cpy(int *passes, int *fails, char *str) {
 	free(new_mine);
 }
 
+void test_cmp_eq(int *passes, int *fails, char *str) {
+	int std = strcmp(str, str);
+	int mine = ft_strcmp(str, str);
+	if (std != mine) {
+		(*fails)++;
+		printf("FAIL: strcmp(%s, %s) -> mine: %d\n", str, str, mine);
+	} else {
+		(*passes)++;
+	}
+}
+
+void test_cmp_diff(int *passes, int *fails, char *str1, char *str2) {
+	int std = strcmp(str1, str2);
+	int mine = ft_strcmp(str1, str2);
+	if (std != mine) {
+		(*fails)++;
+		printf("FAIL: strcmp(%s, %s) -> std: %d; mine: %d\n", str1, str2, std, mine);
+	} else {
+		(*passes)++;
+	}
+}
+
 void test_strs(int *passes, int *fails) {
-	for (int i = 0; i < 5; i++) {
+	int iter_count = 10;
+	//for (int i = 0; i < iter_count; i++) {
+	for (int i = 0; !*fails; i++) {
 		char *str1 = strgenerator(i);
 		test_strlen(passes, fails, str1);
 		test_cpy(passes, fails, str1);
+		test_cmp_eq(passes, fails, str1);
+		for (int j = 0; j < iter_count; j++) {
+			if (j == i) {
+				continue ;
+			}
+			char *str2 = strgenerator(j);
+			test_cmp_diff(passes, fails, str1, str2);
+			free(str2);
+		}
 		free(str1);
 	}
 }

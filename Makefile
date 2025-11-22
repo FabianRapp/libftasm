@@ -26,8 +26,6 @@ compile: $(LIB) main.c
 $(LIB): $(OBJ_DIR) $(SRC) $(OBJ)
 	ar rcs $(LIB) $(OBJ)
 
-
-
 $(OBJ_DIR):
 	mkdir -p $@
 
@@ -40,7 +38,9 @@ clean:
 fclean: clean
 	rm -f $(LIB) a.out
 
+re: fclean compile
+
 dep:
 	brew install nasm
 
-.PHONY: dep compile
+.PHONY: dep compile re clean fclean
