@@ -8,7 +8,7 @@ int ft_list_size();
 int ft_list_sort();
 int ft_read();
 int ft_strcmp();
-int ft_strcpy();
+char *ft_strcpy(char *restrict dst, const char *restrict src);
 int ft_strdup();
 size_t ft_strlen(const char *s);
 int ft_write();
