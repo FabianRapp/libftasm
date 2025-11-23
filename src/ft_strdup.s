@@ -31,6 +31,6 @@ ft_strdup:
 
 
 .malloc_error:
-	pop rcx
+	add rsp, 8
 	ret
 
