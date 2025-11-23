@@ -7,6 +7,10 @@
 #include <fcntl.h>
 #include <errno.h>
 
+int passes = 0;
+int fails = 0;
+
+
 /* todo:
  [ ] - ft_atoi_base.s
  [ ] - ft_list_push.s
@@ -25,9 +29,102 @@
 	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
  [ ] - rename bonus files with '_bonus' suffix
 */
-int passes = 0;
-int fails = 0;
 
+bool ft_isspace(char c) {
+	return (c >= 9 && c <= 13) || (c == ' ');
+}
+
+int ref_ft_atoi_base(char *str, char *base_str) {
+	int ret = 0;
+	int base = strlen(base_str);
+	int i = 0;
+	int sign = 1;
+	char mem[256];
+	memset(mem, 0, 256);
+	for (int i = 0; i < base; i++) {
+		if (mem[base_str[i]] || base_str[i] == '+' || base_str[i] == '-' || ft_isspace(base_str[i])) {
+			//invalid base
+			return (0);
+		}
+		mem[base_str[i]] = 1;
+	}
+	while (ft_isspace(*str)) {
+		str++;
+	}
+	if (str[0] == '-') {
+		sign = -1;
+		str++;
+	} else if (*str == '+') {
+		str++;
+	}
+	for (int i = 0; str[i]; i++) {
+		int digit = 0;
+		for (; digit < base; digit++) {
+			if (str[i] == base_str[digit]) {
+				ret *= base;
+				ret += digit;
+				break ;
+			}
+		}
+		if (digit == base) {
+			return ret * sign;
+		}
+	}
+	return ret * sign;
+}
+
+static void test_one_atoi_base(const char *s, const char *b) {
+	int ref = ref_ft_atoi_base((char *)s, (char *)b);
+	int got = ft_atoi_base((char *)s, (char *)b);
+
+	if (ref != got) {
+		fails++;
+		printf("FAIL: ft_atoi_base(\"%s\", \"%s\") -> got %d, expected %d\n",
+		       s, b, got, ref);
+	} else {
+		passes++;
+	}
+}
+
+static void test_atoi_base_basic(void) {
+	test_one_atoi_base("0", "0123456789");
+	test_one_atoi_base("42", "0123456789");
+	test_one_atoi_base("-42", "0123456789");
+	test_one_atoi_base("+42", "0123456789");
+	test_one_atoi_base("   123", "0123456789");
+	test_one_atoi_base("\t\n\r\v\f  -123", "0123456789");
+	test_one_atoi_base("   ---+--+1234ab567", "0123456789");
+
+	test_one_atoi_base("10102", "01");
+	test_one_atoi_base("FFG", "0123456789ABCDEF");
+	test_one_atoi_base("   +--+xyz", "0123456789");
+
+	test_one_atoi_base("p", "poneyvif");
+	test_one_atoi_base("yv", "poneyvif");
+	test_one_atoi_base("vvvv", "poneyvif");
+	test_one_atoi_base("-poney", "poneyvif");
+
+	test_one_atoi_base("FF", "0123456789ABCDEF");
+
+	test_one_atoi_base("abc", "0123456789");
+
+	test_one_atoi_base("+-+-", "0123456789");
+	test_one_atoi_base("   -+--+0", "0123456789");
+}
+
+static void test_atoi_base_invalid_bases(void) {
+	test_one_atoi_base("123", "");
+	test_one_atoi_base("123", "0");
+
+	test_one_atoi_base("123", "00123456789");
+	test_one_atoi_base("ABC", "01234A56789A");
+	test_one_atoi_base("poney", "pponeyvif");
+
+	test_one_atoi_base("123", "012+3456789");
+	test_one_atoi_base("123", "012-3456789");
+	test_one_atoi_base("123", "0 123456789");
+	test_one_atoi_base("123", "0\t123456789");
+}
 
 char *strgenerator(int idx) {
 	if (idx == 0) {
@@ -389,10 +486,17 @@ void test_data() {
 	}
 }
 
+void test_atoi_base(void)
+{
+	test_atoi_base_basic();
+	test_atoi_base_invalid_bases();
+}
+
 int main(void) {
 	srand(time(NULL));
 	test_strs();
 	test_data();
+	test_atoi_base();
 
 	printf("%d passes and %d fails\n", passes, fails);
 	return 0;
