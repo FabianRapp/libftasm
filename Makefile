@@ -34,6 +34,7 @@ obj/%.o: src/%.s
 
 clean:
 	rm -rf $(OBJ_DIR)
+	rm -f FILE1
 
 fclean: clean
 	rm -f $(LIB) a.out
