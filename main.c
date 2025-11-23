@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 
 /* todo:
  [ ] - ft_atoi_base.s
@@ -25,6 +28,7 @@
 */
 int passes = 0;
 int fails = 0;
+
 
 char *strgenerator(int idx) {
 	if (idx == 0) {
@@ -103,6 +107,28 @@ void test_cmp_diff(char *str1, char *str2) {
 	} else {
 		(passes)++;
 	}
+}
+
+int make_file1(char *data, int data_size) {
+	int fd = open("FILE1", O_WRONLY | O_CREAT | O_TRUNC);
+	if (fd < 0) {
+		perror(strerror(errno));
+		exit(1);
+	}
+	write(fd, data, data_size);
+	return fd;
+}
+
+void test_read(char *data, int data_size) {
+	int fd = make_file1(data, data_size);
+	//todo seek fd pos etc..
+	char *std = calloc(1, data_size);
+	char *mine = calloc(1, data_size);
+	read(fd, std, data_size);
+	read(fd, mine, data_size);
+	free(std);
+	free(mine);
+	close(fd);
 }
 
 void test_strs() {
