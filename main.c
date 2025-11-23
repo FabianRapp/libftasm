@@ -16,7 +16,7 @@
  [x] - ft_read.s
  [x] - ft_strcmp.s
  [x] - ft_strcpy.s
- [ ] - ft_strdup.s
+ [x] - ft_strdup.s
  [x] - ft_strlen.s
  [x] - ft_write.s
  [x] - remove passes/fails pointer passing and simply make them global
@@ -145,14 +145,81 @@ int make_file1(char *data, int data_size) {
 	return fd;
 }
 
+void test_strdup(char *str) {
+	char *std = strdup(str);
+	char *mine1 = ft_strdup(str);
+	char *mine2 = ft_strdup(str);
+
+	if (!std || !mine1 || !mine2) {
+		if (std == mine1 && mine1 == mine2) {
+			passes++;
+		} else {
+			fails++;
+			printf("FAIL: strdup(%s): NULL mismatch: std=%p mine1=%p mine2=%p\n",
+			       str, (void *)std, (void *)mine1, (void *)mine2);
+		}
+		free(std);
+		free(mine1);
+		free(mine2);
+		return ;
+	}
+
+	if (strcmp(std, mine1) || strcmp(std, mine2)) {
+		fails++;
+		printf("FAIL: strdup content mismatch for |%s|\n", str);
+		printf("  std  : |%s|\n", std);
+		printf("  mine1: |%s|\n", mine1);
+		printf("  mine2: |%s|\n", mine2);
+	} else {
+		passes++;
+	}
+
+	if (mine1 == str) {
+		fails++;
+		printf("FAIL: ft_strdup(%s) returned same pointer as input\n", str);
+	}
+	if (mine2 == str) {
+		fails++;
+		printf("FAIL: second ft_strdup(%s) returned same pointer as input\n", str);
+	}
+	if (mine1 == mine2) {
+		fails++;
+		printf("FAIL: ft_strdup(%s) returned same pointer for two calls\n", str);
+	}
+
+	if (mine1[0] != '\0') {
+		char old1 = mine1[0];
+		char old2 = mine2[0];
+		char olds = std[0];
+
+		mine1[0] = (char)(mine1[0] ^ 0xFF);
+
+		if (mine2[0] != old2) {
+			fails++;
+			printf("FAIL: ft_strdup(%s): copies not independent (mine2 changed)\n", str);
+		}
+		if (std[0] != olds) {
+			fails++;
+			printf("FAIL: ft_strdup(%s): std copy changed when mine1 modified\n", str);
+		}
+
+		mine1[0] = old1;
+	}
+
+	free(std);
+	free(mine1);
+	free(mine2);
+}
+
 void test_strs() {
-	int iter_count = 10;
+	int iter_count = 100;
 	for (int i = 0; i < iter_count; i++) {
 	//for (int i = 0; !fails; i++) {
 		char *str1 = strgenerator(i);
 		test_strlen(str1);
 		test_cpy(str1);
 		test_cmp_eq(str1);
+		test_strdup(str1);
 		for (int j = 0; j < iter_count; j++) {
 			if (j == i) {
 				continue ;
