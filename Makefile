@@ -1,4 +1,4 @@
-
+FLAGS = -O0 -g
 SRC_FILES = \
 	ft_atoi_base.s \
 	ft_list_push.s \
@@ -21,7 +21,7 @@ LIB := libftasm.a
 
 
 compile: $(LIB) main.c
-	cc main.c $(LIB)
+	cc $(FLAGS) main.c $(LIB)
 
 $(LIB): $(OBJ_DIR) $(SRC) $(OBJ)
 	ar rcs $(LIB) $(OBJ)
@@ -30,7 +30,7 @@ $(OBJ_DIR):
 	mkdir -p $@
 
 obj/%.o: src/%.s
-	nasm -f elf64 $< -o $@
+	nasm -f elf64 -g -F dwarf $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)

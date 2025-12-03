@@ -37,6 +37,9 @@ bool ft_isspace(char c) {
 int ref_ft_atoi_base(char *str, char *base_str) {
 	int ret = 0;
 	int base = strlen(base_str);
+	//if (base == 1) {
+	//	return 0;
+	//}
 	int i = 0;
 	int sign = 1;
 	char mem[256];

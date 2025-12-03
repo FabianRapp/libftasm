@@ -49,6 +49,7 @@ valid_base:
 	mov rcx, rsp
 	mov rax, 256
 	;memset(mem, 0, 256)
+
 .memset_loop:
 	mov byte [rcx], 0
 	dec rax
@@ -57,8 +58,7 @@ valid_base:
 	jnz .memset_loop
 
 	sub rcx, 256
-
-	xor rdi, rdi; for ft_isspace args zero it the upper bytes
+	xor rdi, rdi; for ft_isspace args zero the upper bytes
 
 .loop:
 	; c= *base_str
@@ -81,20 +81,29 @@ valid_base:
 	cmp dil, '+'
 	je .ret_false
 
-;TODO: mem[xyz]
+; if mem[c] ret false
+	add rcx, rdi
+	xor rax, rax
+	mov al, [rcx]
+	test rax, rax
+	jz .ret_false
+; mem[c] = 1
+	mov byte [rcx], 1
+	sub rcx, rdi
+
 
 	;base_str++
 	inc rbx
 	jmp .loop
 
 .ret_true:
-	pop rbx
 	add rsp, 256
+	pop rbx
 	mov rax, 1
 	ret
 .ret_false:
-	pop rbx
 	add rsp, 256
+	pop rbx
 	mov rax, 0
 	ret
 
@@ -103,9 +112,9 @@ valid_base:
 ;	[ ] int base = strlen(base_str);
 ;	[ ] int i = 0;
 ;	[ ] int sign = 1;
-;	[ ] if (!valid_base(base_str)) {
-;	[ ] 	return false;
-;	[ ] }
+;	[x] if (!valid_base(base_str)) {
+;	[x] 	return false;
+;	[x] }
 ;	[ ] while (ft_isspace(*str)) {
 ;	[ ] 	str++;
 ;	[ ] }
@@ -131,8 +140,27 @@ valid_base:
 ;	[ ] return ret * sign;
 ;}
 ft_atoi_base:
+	push rdi
+	push rsi
+	mov rsi, rdi
+	call valid_base
+	pop rsi
+	pop rdi
+
+	test rax, rax
+	jz .ret_0
+	
+
+
+
+.ret:
 	xor rax, rax
+	inc rax
 	ret
 
+
+.ret_0:
+	xor rax, rax
+	ret
 
 
