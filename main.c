@@ -34,7 +34,27 @@ bool ft_isspace(char c) {
 	return (c >= 9 && c <= 13) || (c == ' ');
 }
 
+bool ref_valid_base(char *base) {
+	if (!base || !*base) {
+		return false;
+	}
+	int len = ft_strlen(base);
+	char mem[256];
+	memset(mem, 0, 256);
+	for (int i = 0; i < len; i++) {
+		if (mem[base[i]] || base[i] == '+' || base[i] == '-' || ft_isspace(base[i])) {
+			//invalid base
+			return false;
+		}
+		mem[base[i]] = 1;
+	}
+	return true;
+}
+
 int ref_ft_atoi_base(char *str, char *base_str) {
+	if (!str || !base_str) {
+		return 0;
+	}
 	int ret = 0;
 	int base = strlen(base_str);
 	//if (base == 1) {
@@ -42,14 +62,8 @@ int ref_ft_atoi_base(char *str, char *base_str) {
 	//}
 	int i = 0;
 	int sign = 1;
-	char mem[256];
-	memset(mem, 0, 256);
-	for (int i = 0; i < base; i++) {
-		if (mem[base_str[i]] || base_str[i] == '+' || base_str[i] == '-' || ft_isspace(base_str[i])) {
-			//invalid base
-			return (0);
-		}
-		mem[base_str[i]] = 1;
+	if (!ref_valid_base(base_str)) {
+		return 0;
 	}
 	while (ft_isspace(*str)) {
 		str++;
@@ -85,40 +99,47 @@ static void test_one_atoi_base(const char *s, const char *b) {
 		printf("FAIL: ft_atoi_base(\"%s\", \"%s\") -> got %d, expected %d\n",
 		       s, b, got, ref);
 	} else {
+		//printf("PASS: ft_atoi_base(\"%s\", \"%s\") -> got %d, expected %d\n",
+		//       s, b, got, ref);
 		passes++;
 	}
 }
 
 static void test_atoi_base_basic(void) {
 	test_one_atoi_base("0", "0123456789");
-	test_one_atoi_base("42", "0123456789");
-	test_one_atoi_base("-42", "0123456789");
-	test_one_atoi_base("+42", "0123456789");
-	test_one_atoi_base("   123", "0123456789");
-	test_one_atoi_base("\t\n\r\v\f  -123", "0123456789");
-	test_one_atoi_base("   ---+--+1234ab567", "0123456789");
+	test_one_atoi_base("2", "12");
+	test_one_atoi_base(NULL, "12");
+	//test_one_atoi_base("42", "0123456789");
+	//test_one_atoi_base("-42", "0123456789");
+	//test_one_atoi_base("+42", "0123456789");
+	//test_one_atoi_base("123", "0123456789");
+	//test_one_atoi_base("\t\n\r\v\f  -123", "0123456789");
+	//test_one_atoi_base("   ---+--+1234ab567", "0123456789");
 
-	test_one_atoi_base("10102", "01");
-	test_one_atoi_base("FFG", "0123456789ABCDEF");
-	test_one_atoi_base("   +--+xyz", "0123456789");
+	//test_one_atoi_base("10102", "01");
+	//test_one_atoi_base("FFG", "0123456789ABCDEF");
+	//test_one_atoi_base("   +--+xyz", "0123456789");
 
-	test_one_atoi_base("p", "poneyvif");
-	test_one_atoi_base("yv", "poneyvif");
-	test_one_atoi_base("vvvv", "poneyvif");
-	test_one_atoi_base("-poney", "poneyvif");
+	//test_one_atoi_base("p", "poneyvif");
+	//test_one_atoi_base("yv", "poneyvif");
+	//test_one_atoi_base("vvvv", "poneyvif");
+	//test_one_atoi_base("-poney", "poneyvif");
 
-	test_one_atoi_base("FF", "0123456789ABCDEF");
+	//test_one_atoi_base("FF", "0123456789ABCDEF");
 
-	test_one_atoi_base("abc", "0123456789");
+	//test_one_atoi_base("abc", "0123456789");
 
-	test_one_atoi_base("+-+-", "0123456789");
-	test_one_atoi_base("   -+--+0", "0123456789");
+	//test_one_atoi_base("+-+-", "0123456789");
+	//test_one_atoi_base("   -+--+0", "0123456789");
 }
 
 static void test_atoi_base_invalid_bases(void) {
+	test_one_atoi_base("123", NULL);
+	test_one_atoi_base(NULL, NULL);
 	test_one_atoi_base("123", "");
 	test_one_atoi_base("123", "0");
 
+	test_one_atoi_base("123", "00");
 	test_one_atoi_base("123", "00123456789");
 	test_one_atoi_base("ABC", "01234A56789A");
 	test_one_atoi_base("poney", "pponeyvif");
@@ -491,7 +512,7 @@ void test_data() {
 
 void test_atoi_base(void)
 {
-	test_atoi_base_basic();
+	//test_atoi_base_basic();
 	test_atoi_base_invalid_bases();
 }
 

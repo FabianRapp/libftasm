@@ -39,6 +39,9 @@ ft_isspace:
 ;	}
 ;	[x] return true;
 ;}
+
+;TODO: BUGGED
+; mem[c] dosn't work i think?
 valid_base:
 	push rbx
 	; set rbx as base_str
@@ -60,8 +63,13 @@ valid_base:
 	sub rcx, 256
 	xor rdi, rdi; for ft_isspace args zero the upper bytes
 
+	; if the first char in the base is \0 the base is invalid
+	mov dil, [rbx]
+	test rdi, rdi
+	jz .ret_false
+
 .loop:
-	; c= *base_str
+	; rdi = c = *base_str
 	mov dil, [rbx]
 	; if !c return true
 	cmp dil, 0
@@ -71,8 +79,8 @@ valid_base:
 	push rcx
 	push rdi
 	call ft_isspace
-	pop rcx
 	pop rdi
+	pop rcx
 	test rax, rax
 	jnz .ret_false
 
@@ -86,11 +94,10 @@ valid_base:
 	xor rax, rax
 	mov al, [rcx]
 	test rax, rax
-	jz .ret_false
+	jnz .ret_false
 ; mem[c] = 1
 	mov byte [rcx], 1
 	sub rcx, rdi
-
 
 	;base_str++
 	inc rbx
@@ -115,8 +122,8 @@ valid_base:
 ;	[x] if (!valid_base(base_str)) {
 ;	[x] 	return false;
 ;	[x] }
-;	[ ] while (ft_isspace(*str)) {
-;	[ ] 	str++;
+;	[x] while (ft_isspace(*str)) {
+;	[x] 	str++;
 ;	[ ] }
 ;	[ ] if (str[0] == '-') {
 ;	[ ] 	sign = -1;
@@ -139,27 +146,52 @@ valid_base:
 ;	[ ] }
 ;	[ ] return ret * sign;
 ;}
+
 ft_atoi_base:
-	push rdi
-	push rsi
-	mov rsi, rdi
+	;test for NULL ptrs
+	test rdi, rdi
+	jz .ret_0_0
+	test rsi, rsi
+	jz .ret_0_0
+
+	push rbx ; push old_rbx
+	push rsi ; push base
+	push rdi ; push str
+	mov rdi, rsi
 	call valid_base
-	pop rsi
-	pop rdi
-
+	pop rdi ; pop str
 	test rax, rax
-	jz .ret_0
-	
+	jz .ret_0_1
 
+	mov rbx, rdi
+	xor rdi, rdi
+
+.skip_space:
+	mov byte rdi, [rbx]
+
+	;if !*str -> return 0
+	test rdi, rdi
+	jz .ret_0_1
+
+	inc rbx
+	call ft_isspace
+	test rax, rax
+	jnz .skip_space
+
+	dec rbx
+	pop rsi ;pop base
 
 
 .ret:
 	xor rax, rax
 	inc rax
+	pop rbx
 	ret
 
-
-.ret_0:
+.ret_0_1:
+	pop rsi ;pop base
+	pop rbx
+.ret_0_0:
 	xor rax, rax
 	ret
 
