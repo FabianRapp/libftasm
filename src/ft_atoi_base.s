@@ -116,7 +116,6 @@ valid_base:
 ;int ref_ft_atoi_base(char *str, char *base_str) {
 ;	[x] int ret = 0;
 ;	[x] int base = strlen(base_str);
-;	[ ] int i = 0;
 ;	[x] int sign = 1;
 ;	[x] if (!valid_base(base_str)) {
 ;	[x] 	return false;
@@ -130,15 +129,16 @@ valid_base:
 ;	[x] } else if (*str == '+') {
 ;	[x] 	str++;
 ;	[x] }
-;	[ ] for (int i = 0; str[i]; i++) {
-;	[ ] 	int digit = 0;
-;	[ ] 	for (; digit < base; digit++) {
-;	[ ] 		if (str[i] == base_str[digit]) {
-;	[ ] 			break ;
-;	[ ] 		}
-;	[ ] 	}
-;	[x] 	if (digit == base) { // c is not in base_str -> return number
-;	[x] 		return ret * sign;
+;	[x] while (*str) {
+;	[x] 	int digit = 0;
+;	[x] 	while (1) {
+;	[x] 		if (!base_str[digit]) {
+;	[x] 			return ret * sign;
+;	[x] 		}
+;	[x] 		if (*str == base_str[digit]) {
+;	[x] 			break ;
+;	[x] 		}
+;	[x] 		digit++;
 ;	[x] 	}
 ;	[x] 	ret *= base;
 ;	[x] 	ret += digit;
@@ -214,16 +214,15 @@ ft_atoi_base:
 	jmp .main_loop
 
 
-
-	; ======================================
-	; MAIN LOOP
-	; rbx == current pos in number str
-	; dil(rdi) == current char c ([rbx])
-	; rsi == base_str
-	; r8 == base magnitude
-	; r9 == current number result
-	; r11 == current digit
-	; ======================================
+; ======================================
+; MAIN LOOP
+; rbx == current pos in number str
+; dil(rdi) == current char c ([rbx])
+; rsi == base_str
+; r8 == base magnitude
+; r9 == current number result
+; r11 == current digit
+; ======================================
 .main_loop:
 	xor rdi, rdi
 	mov dil, [rbx] ; dil is now the current char c
