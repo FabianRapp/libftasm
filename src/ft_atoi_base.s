@@ -134,15 +134,15 @@ valid_base:
 ;	[ ] 	int digit = 0;
 ;	[ ] 	for (; digit < base; digit++) {
 ;	[ ] 		if (str[i] == base_str[digit]) {
-;	[ ] 			ret *= base;
-;	[ ] 			ret += digit;
 ;	[ ] 			break ;
 ;	[ ] 		}
 ;	[ ] 	}
-;	[ ] 	if (digit == base) { // c is not in base_str -> return number
-;	[ ] 		return ret * sign;
-;	[ ] 	}
-;	[ ] }
+;	[x] 	if (digit == base) { // c is not in base_str -> return number
+;	[x] 		return ret * sign;
+;	[x] 	}
+;	[x] 	ret *= base;
+;	[x] 	ret += digit;
+;	[x] }
 ;	[x] return ret * sign;
 ;}
 
@@ -198,6 +198,9 @@ ft_atoi_base:
 	xor rdi, rdi
 	mov dil, [rbx] ; dil is now the current char c
 
+	push r11 ; push old r11 so it can be used as digit
+	xor r11, r11
+
 	cmp dil, '+'
 	je .inc_and_loop
 
@@ -210,6 +213,8 @@ ft_atoi_base:
 	inc rbx
 	jmp .main_loop
 
+
+
 	; ======================================
 	; MAIN LOOP
 	; rbx == current pos in number str
@@ -217,13 +222,36 @@ ft_atoi_base:
 	; rsi == base_str
 	; r8 == base magnitude
 	; r9 == current number result
+	; r11 == current digit
 	; ======================================
 .main_loop:
 	xor rdi, rdi
 	mov dil, [rbx] ; dil is now the current char c
 
-	test rdi, rdi
+	test rdi, rdi ; if !*str return
 	jz .ret_result
+
+	xor r11, r11 ; set digit to 0
+
+	.inner_loop:
+		cmp r8, r11 ; if base_magnitude <= digit
+		jle .ret_result ; return
+
+		cmp dil, byte [rsi + r11] ; if c == base[digit]
+		je .break_inner ; break
+
+		inc r11 ; digit++
+		jmp .inner_loop
+
+
+.break_inner:
+
+	imul r9, r8 ; result *= base_magnitude
+	add r9, r11 ; result += digit
+
+	inc rbx ; str++
+	jmp .main_loop
+
 
 
 ; ====================================
@@ -231,6 +259,7 @@ ft_atoi_base:
 .ret_result:
 	imul r9, r10 ; result = result * sign
 	mov rax, r9
+	pop r11
 	pop r10
 	pop r9
 	pop r8

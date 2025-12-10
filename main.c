@@ -106,31 +106,35 @@ static void test_one_atoi_base(const char *s, const char *b) {
 }
 
 static void test_atoi_base_basic(void) {
+	test_one_atoi_base("", "0123456789");
+	test_one_atoi_base("2", "0123456789");
+	test_one_atoi_base("+2", "0123456789");
+	test_one_atoi_base("-2", "0123456789");
 	test_one_atoi_base("0", "0123456789");
 	test_one_atoi_base("2", "12");
 	test_one_atoi_base(NULL, "12");
-	//test_one_atoi_base("42", "0123456789");
-	//test_one_atoi_base("-42", "0123456789");
-	//test_one_atoi_base("+42", "0123456789");
-	//test_one_atoi_base("123", "0123456789");
-	//test_one_atoi_base("\t\n\r\v\f  -123", "0123456789");
-	//test_one_atoi_base("   ---+--+1234ab567", "0123456789");
+	test_one_atoi_base("42", "0123456789");
+	test_one_atoi_base("-42", "0123456789");
+	test_one_atoi_base("+42", "0123456789");
+	test_one_atoi_base("123", "0123456789");
+	test_one_atoi_base("\t\n\r\v\f  -123", "0123456789");
+	test_one_atoi_base("   ---+--+1234ab567", "0123456789");
 
-	//test_one_atoi_base("10102", "01");
-	//test_one_atoi_base("FFG", "0123456789ABCDEF");
-	//test_one_atoi_base("   +--+xyz", "0123456789");
+	test_one_atoi_base("10102", "01");
+	test_one_atoi_base("FFG", "0123456789ABCDEF");
+	test_one_atoi_base("   +--+xyz", "0123456789");
 
-	//test_one_atoi_base("p", "poneyvif");
-	//test_one_atoi_base("yv", "poneyvif");
-	//test_one_atoi_base("vvvv", "poneyvif");
-	//test_one_atoi_base("-poney", "poneyvif");
+	test_one_atoi_base("p", "poneyvif");
+	test_one_atoi_base("yv", "poneyvif");
+	test_one_atoi_base("vvvv", "poneyvif");
+	test_one_atoi_base("-poney", "poneyvif");
 
-	//test_one_atoi_base("FF", "0123456789ABCDEF");
+	test_one_atoi_base("FF", "0123456789ABCDEF");
 
-	//test_one_atoi_base("abc", "0123456789");
+	test_one_atoi_base("abc", "0123456789");
 
-	//test_one_atoi_base("+-+-", "0123456789");
-	//test_one_atoi_base("   -+--+0", "0123456789");
+	test_one_atoi_base("+-+-", "0123456789");
+	test_one_atoi_base("   -+--+0", "0123456789");
 }
 
 static void test_atoi_base_invalid_bases(void) {
@@ -512,7 +516,7 @@ void test_data() {
 
 void test_atoi_base(void)
 {
-	//test_atoi_base_basic();
+	test_atoi_base_basic();
 	test_atoi_base_invalid_bases();
 }
 
