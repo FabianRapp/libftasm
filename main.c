@@ -12,10 +12,10 @@ int fails = 0;
 
 
 /* todo:
- [ ] - ft_atoi_base.s
- [ ] - ft_list_push.s
+ [x] - ft_atoi_base.s
+ [ ] - ft_list_push_front.s
  [ ] - ft_list_remove_if.s
- [ ] - ft_list_size.s
+ [x] - ft_list_size.s
  [ ] - ft_list_sort.s
  [x] - ft_read.s
  [x] - ft_strcmp.s
@@ -97,10 +97,10 @@ static void test_one_atoi_base(const char *s, const char *b) {
 	if (ref != got) {
 		fails++;
 		printf("FAIL: ft_atoi_base(\"%s\", \"%s\") -> got %d, expected %d\n",
-		       s, b, got, ref);
+			   s, b, got, ref);
 	} else {
 		//printf("PASS: ft_atoi_base(\"%s\", \"%s\") -> got %d, expected %d\n",
-		//       s, b, got, ref);
+		//	   s, b, got, ref);
 		passes++;
 	}
 }
@@ -219,7 +219,6 @@ void test_cpy(char *str) {
 
 	char *std = strcpy(new_std, str);
 	char *mine = ft_strcpy(new_mine, str);
-	//todo: test return value
 	if (!strcmp(new_std, new_mine)) {
 		(passes)++;
 	} else {
@@ -281,7 +280,7 @@ void test_strdup(char *str) {
 		} else {
 			fails++;
 			printf("FAIL: strdup(%s): NULL mismatch: std=%p mine1=%p mine2=%p\n",
-			       str, (void *)std, (void *)mine1, (void *)mine2);
+				   str, (void *)std, (void *)mine1, (void *)mine2);
 		}
 		free(std);
 		free(mine1);
@@ -520,11 +519,159 @@ void test_atoi_base(void)
 	test_atoi_base_invalid_bases();
 }
 
+void ref_list_push_front(t_list **head, void *data) {
+	if (!head) {
+		return ;
+	}
+	t_list *node = malloc(sizeof(*node));
+	if (!node) {
+		return;
+	}
+	node->data = data;
+	node->next = *head;
+	*head = node;
+}
+
+void ref_list_remove_if(t_list **head, void *data_ref, int (*cmp)(void *data1, void *data), void *free_fct(void *data)) {
+	if (!head) {
+		return ;
+	}
+	while (*head && cmp(data_ref, (*head)->data)) {
+		t_list *old_head = *head;
+		*head = old_head->next;
+		free_fct(old_head->data);
+		free(old_head);
+	}
+	if (!*head) {
+		return ;
+	}
+	t_list *last = *head;
+	t_list *cur = (*head)->next;
+	while (cur) {
+		if (cmp(data_ref, cur->data)) {
+			last->next = cur->next;
+			free_fct(cur->data);
+			free(cur);
+		} else {
+			last = cur;
+		}
+		cur = last->next;
+	}
+}
+
+int ref_list_size(t_list *head) {
+	int size = 0;
+	while (head) {
+		size++;
+		head = head->next;
+	}
+	return size;
+}
+
+void ref_helper_insert(t_list **head, t_list *node, int *cmp(void *data, void *data2)) {
+	if (!head) {
+		return ;
+	}
+	if (!*head) {
+		*head = node;
+		return ;
+	}
+	t_list *last = NULL;
+	t_list *cur = *head;
+	while (cur) {
+		if (cmp(cur->data, node->data) > 0) {
+			node->next = cur;
+			if (last) {
+				last->next = node;
+			} else {
+				*head = node;
+			}
+			return ;
+		}
+		last = cur;
+		cur = cur->next;
+	}
+	last->next = node;
+}
+
+void ref_list_sort(t_list **head, int *cmp(void *data1, void *data2)) {
+	if (!head || !*head) {
+		return ;
+	}
+
+	t_list *sorted_head = *head;
+	*head = (*head)->next;
+	sorted_head->next = NULL;
+
+	while (*head) {
+		t_list *to_insert = *head;
+		*head = (*head)->next;
+		to_insert->next = NULL;
+		ref_helper_insert(&sorted_head, to_insert, cmp);
+	}
+	*head = sorted_head;
+}
+
+t_list *inc_list(int len) {
+	if (len <= 0) {
+		return NULL;
+	}
+	t_list *head = malloc(sizeof *head);
+	head->data = malloc(sizeof(int));
+	*(int*)(head->data) = 0;
+	t_list *cur = head;
+
+	for (int i = 1; i < len; i++) {
+		cur->next = calloc(sizeof(t_list), 1);
+		cur = cur->next;
+		cur->data = malloc(sizeof(int));
+		*(int*)cur->data = i;
+		cur->next = NULL;
+	}
+	return head;
+}
+
+void free_list(t_list *head) {
+	if (!head) {
+		return ;
+	}
+	t_list *cur = head->next;
+	t_list *last = head;
+	while (cur) {
+		free(last->data);
+		free(last);
+		last = cur;
+		cur = cur->next;
+	}
+	free(last->data);
+	free(last);
+}
+
+void test_list_size() {
+	for (int i = 0; i < 5; i++) {
+		t_list *a = inc_list(i);
+		int ref = ref_list_size(a);
+		int actual = ft_list_size(a);
+		if (ref != actual) {
+			fails++;
+			printf("FAIL: ft_list_size(list len %d): actual: %d\n", i, actual);
+		} else {
+			passes++;
+		}
+		free_list(a);
+	}
+}
+
+void test_lists() {
+	test_list_size();
+}
+
 int main(void) {
 	srand(time(NULL));
 	test_strs();
 	test_data();
 	test_atoi_base();
+	test_lists();
 
 	printf("%d passes and %d fails\n", passes, fails);
 	return 0;

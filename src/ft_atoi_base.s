@@ -262,7 +262,7 @@ ft_atoi_base:
 	pop r10
 	pop r9
 	pop r8
-.ret:
+
 	pop rbx ;pop old_rbx
 	ret
 

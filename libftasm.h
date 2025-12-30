@@ -9,10 +9,11 @@ typedef struct s_list
 } t_list;
 
 int ft_atoi_base(char *str, char *base);
-void ft_list_push(t_list **head, t_list node);
-void ft_list_remove_if(t_list **head, bool *fn(void *data));
-size_t ft_list_size(t_list *head);
-void ft_list_sort(t_list **head);
+
+void ft_list_push_front(t_list **begin_list, void *data);
+int ft_list_size(t_list *head);
+void ft_list_remove_if(t_list **begin_list, void *data_ref, int (*cmp)(void *data1, void *data), void (*free_fct)(void *data));
+void ft_list_sort(t_list **head, int *cmp(void *data1, void *data2));
 
 ssize_t ft_read(int fd, void *buf, size_t count);
 int ft_strcmp(const char *s1, const char *s2);
