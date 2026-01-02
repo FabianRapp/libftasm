@@ -13,7 +13,7 @@ int fails = 0;
 
 /* todo:
  [x] - ft_atoi_base.s
- [ ] - ft_list_push_front.s
+ [x] - ft_list_push_front.s
  [ ] - ft_list_remove_if.s
  [x] - ft_list_size.s
  [ ] - ft_list_sort.s
@@ -662,8 +662,59 @@ void test_list_size() {
 	}
 }
 
+bool cmp_list(t_list *a, t_list *b) {
+	while (a && b) {
+		if (!a->data && !b->data) {
+			a = a->next;
+			b = b->next;
+			continue;
+		} else if (!a->data || !b->data) {
+			return false;
+		} else if (*(int*)(a->data) != *(int*)(b->data)) {
+			return false;
+		}
+		a = a->next;
+		b = b->next;
+	}
+	if (!a && !b) {
+		return true;
+	}
+	if (!a || !b) {
+		return false;
+	}
+}
+
+void test_push_front() {
+	errno = 0;
+	for (int i = 0; i < 5; i++) {
+		for (int j = -1; j < 5; j++) {
+			t_list *a = inc_list(i);
+			t_list *b = inc_list(i);
+			int *data_a = malloc(sizeof (int));
+			int *data_b = malloc(sizeof (int));
+			if (errno) {
+				perror(strerror(errno));
+				exit(errno);
+			}
+			*data_a = j;
+			*data_b = j;
+			ref_list_push_front(&a, data_a);
+			ft_list_push_front(&b, data_b);
+			if (cmp_list(a, b)) {
+				passes++;
+			} else {
+				printf("FAIL: ft_list_push_front(i: %d; j: %d)\n", i, j);
+				fails++;
+			}
+			free_list(a);
+			free_list(b);
+		}
+	}
+}
+
 void test_lists() {
 	test_list_size();
+	test_push_front();
 }
 
 int main(void) {
