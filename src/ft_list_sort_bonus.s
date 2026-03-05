@@ -1,57 +1,63 @@
-;void ref_list_sort(t_list **head, int *cmp(void *data1, void *data2)) {
-;	[x] if (!head || !*head) {
-;	[x] 	return ;
-;	[x] }
-;
-;	[ ] t_list *sorted_head = *head;
-;	[ ] *head = (*head)->next;
-;	[ ] sorted_head->next = NULL;
-;
-;	[ ] while (*head) {
-;	[ ] 	t_list *to_insert = *head;
-;	[ ] 	*head = (*head)->next;
-;	[ ] 	to_insert->next = NULL;
-;	[ ] 	ref_helper_insert(&sorted_head, to_insert, cmp);
-;	[ ] }
-;	[ ] *head = sorted_head;
-;}
+section .text
+global ft_list_sort
+extern ft_list_size
 
-;void ref_helper_insert(t_list **head, t_list *node, int *cmp(void *data, void *data2)) {
-;	if (!head) {
+;void ref2_list_sort(t_list **head, int (*cmp)(void *data1, void *data2)) {
+;	if (!head || !*head) {
 ;		return ;
 ;	}
-;	if (!*head) {
-;		*head = node;
-;		return ;
-;	}
-;	t_list *last = NULL;
-;	t_list *cur = *head;
-;	while (cur) {
-;		if (cmp(cur->data, node->data) > 0) {
-;			node->next = cur;
-;			if (last) {
-;				last->next = node;
-;			} else {
-;				*head = node;
+;	int len = ft_list_size(*head);
+;	while (--len) {
+;		int inner_iter_count = len;
+;		t_list *cur = *head;
+;		t_list *next = cur->next;
+;		while (inner_iter_count--) {
+;			if (cmp(cur->data, next->data) > 0) {
+;				cur->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
+;				next->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
+;				cur->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
 ;			}
-;			return ;
+;			cur = next;
+;			next = cur->next;
 ;		}
-;		last = cur;
-;		cur = cur->next;
 ;	}
-;	last->next = node;
 ;}
 
 section .text
 	global ft_list_sort
 
 ft_list_sort:
-.loop:
+	; if (!head) return
+	test rdi, rdi
+	jz .return
+	mov rdi, [rdi]
 	test rdi, rdi
 	jz .return
 
-	mov rdi, [rdi + 8]
-	jmp .loop
+	mov rdx, rsi ; rdx = cmp
+
+	call ft_list_size
+
+.outer_loop: ; while (len > 1)
+	dec rax
+	test rax, rax
+	jz .return
+
+	mov rdx, rax ; inner_loop_iters = len
+.inner_loop:
+
+;todo: cmp call can alter regs
+	; cmp(cur, next); todo: cmp(cur->data, next->data)
+	mov rsi, [rdi + 8]
+	call rdx
+
+
+	dec rdx
+	test rdx, rdx
+
+	jnz .inner_loop
+	jmp .outer_loop
+
 
 .return:
 	ret

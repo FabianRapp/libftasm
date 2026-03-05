@@ -13,7 +13,7 @@ BONUS_FILES = \
 	ft_list_size_bonus.s \
 	ft_list_sort_bonus.s
 
-SRC_FILES := $(BASE_FILES)
+SRC_FILES := $(BASE_FILES) $(BONUS_FILES)
 
 SRC = $(addprefix src/, $(SRC_FILES))
 
@@ -46,7 +46,7 @@ clean:
 fclean: clean
 	rm -f $(NAME) a.out
 
-re: fclean compile
+re: fclean all
 
 dep:
 	brew install nasm
