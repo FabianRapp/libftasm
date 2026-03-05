@@ -1,30 +1,37 @@
 FLAGS = -O0 -g
-SRC_FILES = \
-	ft_atoi_base.s \
-	ft_list_push_front.s \
-	ft_list_remove_if.s \
-	ft_list_size.s \
-	ft_list_sort.s \
+BASE_FILES = \
 	ft_read.s \
 	ft_strcmp.s \
 	ft_strcpy.s \
 	ft_strdup.s \
 	ft_strlen.s \
-	ft_write.s \
+	ft_write.s
+BONUS_FILES = \
+	ft_atoi_base_bonus.s \
+	ft_list_push_front_bonus.s \
+	ft_list_remove_if_bonus.s \
+	ft_list_size_bonus.s \
+	ft_list_sort_bonus.s
+
+SRC_FILES := $(BASE_FILES)
 
 SRC = $(addprefix src/, $(SRC_FILES))
 
 OBJ_DIR := obj
 OBJ = $(addprefix $(OBJ_DIR)/, $(SRC_FILES:.s=.o))
 
-LIB := libftasm.a
+NAME := libasm.a
 
+all: $(NAME) test
 
-compile: $(LIB) main.c
-	cc $(FLAGS) main.c $(LIB)
+test: main.c $(NAME)
+	cc $(FLAGS) main.c $(NAME)
 
-$(LIB): $(OBJ_DIR) $(SRC) $(OBJ)
-	ar rcs $(LIB) $(OBJ)
+$(NAME): $(OBJ_DIR) $(SRC) $(OBJ)
+	ar rcs $(NAME) $(OBJ)
+
+bonus:
+	make SRC_FILES="$(BASE_FILES) $(BONUS_FILES)" FALGS="$(FLAGS) -DBONUS"
 
 $(OBJ_DIR):
 	mkdir -p $@
@@ -37,7 +44,7 @@ clean:
 	rm -f FILE1
 
 fclean: clean
-	rm -f $(LIB) a.out
+	rm -f $(NAME) a.out
 
 re: fclean compile
 
@@ -47,4 +54,4 @@ dep:
 val: re
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./a.out
 
-.PHONY: dep compile re clean fclean val
+.PHONY: all test bonus dep compile re clean fclean val
