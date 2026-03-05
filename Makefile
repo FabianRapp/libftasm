@@ -44,4 +44,7 @@ re: fclean compile
 dep:
 	brew install nasm
 
-.PHONY: dep compile re clean fclean
+val: re
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./a.out
+
+.PHONY: dep compile re clean fclean val
