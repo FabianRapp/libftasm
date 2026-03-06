@@ -13,7 +13,7 @@ BONUS_FILES = \
 	ft_list_size_bonus.s \
 	ft_list_sort_bonus.s
 
-SRC_FILES := $(BASE_FILES) $(BONUS_FILES)
+SRC_FILES := $(BASE_FILES)
 
 SRC = $(addprefix src/, $(SRC_FILES))
 
@@ -24,19 +24,19 @@ NAME := libasm.a
 
 all: $(NAME) test
 
-test: main.c $(NAME)
-	cc $(FLAGS) main.c $(NAME)
-
 $(NAME): $(OBJ_DIR) $(SRC) $(OBJ)
 	ar rcs $(NAME) $(OBJ)
 
+test: main.c $(NAME)
+	cc $(FLAGS) main.c $(NAME) -o test
+
 bonus:
-	make SRC_FILES="$(BASE_FILES) $(BONUS_FILES)" FALGS="$(FLAGS) -DBONUS"
+	make SRC_FILES="$(BASE_FILES) $(BONUS_FILES)" FLAGS="$(FLAGS) -DBONUS"
 
 $(OBJ_DIR):
 	mkdir -p $@
 
-obj/%.o: src/%.s
+obj/%.o: src/%.r
 	nasm -f elf64 -g -F dwarf $< -o $@
 
 clean:
@@ -44,7 +44,7 @@ clean:
 	rm -f FILE1
 
 fclean: clean
-	rm -f $(NAME) a.out
+	rm -f $(NAME) a.out test
 
 re: fclean all
 
