@@ -26,7 +26,7 @@ int fails = 0;
  [x] - ft_strlen.s
  [x] - ft_write.s
  [x] - remove passes/fails pointer passing and simply make them global
- [ ] - valgrind issues with some test cases
+ [x] - valgrind issues with some test cases
  [ ] - compile warning:
 	-> /usr/bin/ld: warning: ft_strlen.o: missing .note.GNU-stack section implies executable stack
 	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
@@ -322,7 +322,6 @@ void test_strdup(char *str) {
 			fails++;
 			printf("FAIL: ft_strdup(%s): std copy changed when mine1 modified\n", str);
 		}
-
 		mine1[0] = old1;
 	}
 

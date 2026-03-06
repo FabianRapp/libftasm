@@ -13,4 +13,3 @@ ft_strlen:
 	jmp .loop
 .ret:
 	ret
-
