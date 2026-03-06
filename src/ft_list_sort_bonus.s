@@ -112,3 +112,4 @@ ft_list_sort:
 	pop r13
 	pop r12
 	ret
+section .note.GNU-stack noalloc noexec nowrite progbits

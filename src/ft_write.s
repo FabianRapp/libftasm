@@ -23,3 +23,4 @@ ft_write:
 
 .return:
 	ret
+section .note.GNU-stack noalloc noexec nowrite progbits

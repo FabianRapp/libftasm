@@ -148,3 +148,4 @@ ft_list_remove_if:
 	pop r13
 	pop r12
 	ret
+section .note.GNU-stack noalloc noexec nowrite progbits

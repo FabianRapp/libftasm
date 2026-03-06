@@ -35,3 +35,4 @@ ft_list_push_front:
 
 .return:
 	ret
+section .note.GNU-stack noalloc noexec nowrite progbits

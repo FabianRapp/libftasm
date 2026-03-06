@@ -34,3 +34,4 @@ ft_strdup:
 	add rsp, 8
 	ret
 
+section .note.GNU-stack noalloc noexec nowrite progbits
