@@ -52,6 +52,6 @@ dep:
 	brew install nasm
 
 val: re
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./a.out
+	valgrind --leak-check=full --show-leak-kinds=all -s --track-origins=yes ./a.out
 
 .PHONY: all test bonus dep compile re clean fclean val

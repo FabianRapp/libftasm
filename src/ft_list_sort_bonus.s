@@ -35,7 +35,6 @@ ft_list_sort:
 	push r13
 	push r14
 	push r15
-	push rbx
 	sub rsp, 16
 
 	mov r12, rsi ; r12 = cmp
@@ -47,7 +46,6 @@ ft_list_sort:
 
 	call ft_list_size
 	mov r13, rax ; r13 = unsorted_len
-	mov rbx, r13
 
 .outer_loop: ; while (true) {
 	dec r13
@@ -109,7 +107,6 @@ ft_list_sort:
 
 .return2:
 	add rsp, 16
-	pop rbx
 	pop r15
 	pop r14
 	pop r13

@@ -1,11 +1,13 @@
 #include "libftasm.h"
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
 
 int passes = 0;
 int fails = 0;
@@ -14,9 +16,9 @@ int fails = 0;
 /* todo:
  [x] - ft_atoi_base.s
  [x] - ft_list_push_front.s
- [ ] - ft_list_remove_if.s
+ [x] - ft_list_remove_if.s
  [x] - ft_list_size.s
- [ ] - ft_list_sort.s
+ [x] - ft_list_sort.s
  [x] - ft_read.s
  [x] - ft_strcmp.s
  [x] - ft_strcpy.s
@@ -24,10 +26,11 @@ int fails = 0;
  [x] - ft_strlen.s
  [x] - ft_write.s
  [x] - remove passes/fails pointer passing and simply make them global
+ [ ] - valgrind issues with some test cases
  [ ] - compile warning:
 	-> /usr/bin/ld: warning: ft_strlen.o: missing .note.GNU-stack section implies executable stack
 	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
- [ ] - rename bonus files with '_bonus' suffix
+ [x] - rename bonus files with '_bonus' suffix
 */
 
 bool ft_isspace(char c) {
@@ -513,8 +516,7 @@ void test_data() {
 	}
 }
 
-void test_atoi_base(void)
-{
+void test_atoi_base(void) {
 	test_atoi_base_basic();
 	test_atoi_base_invalid_bases();
 }
@@ -532,11 +534,11 @@ void ref_list_push_front(t_list **head, void *data) {
 	*head = node;
 }
 
-void ref_list_remove_if(t_list **head, void *data_ref, int (*cmp)(void *data1, void *data), void *free_fct(void *data)) {
+void ref_list_remove_if(t_list **head, void *data_ref, int (*cmp)(void *data1, void *data), void (*free_fct)(void *data)) {
 	if (!head) {
 		return ;
 	}
-	while (*head && cmp(data_ref, (*head)->data)) {
+	while (*head && !cmp(data_ref, (*head)->data)) {
 		t_list *old_head = *head;
 		*head = old_head->next;
 		free_fct(old_head->data);
@@ -548,7 +550,7 @@ void ref_list_remove_if(t_list **head, void *data_ref, int (*cmp)(void *data1, v
 	t_list *last = *head;
 	t_list *cur = (*head)->next;
 	while (cur) {
-		if (cmp(data_ref, cur->data)) {
+		if (!cmp(data_ref, cur->data)) {
 			last->next = cur->next;
 			free_fct(cur->data);
 			free(cur);
@@ -568,48 +570,25 @@ int ref_list_size(t_list *head) {
 	return size;
 }
 
-void ref_helper_insert(t_list **head, t_list *node, int *cmp(void *data, void *data2)) {
-	if (!head) {
-		return ;
-	}
-	if (!*head) {
-		*head = node;
-		return ;
-	}
-	t_list *last = NULL;
-	t_list *cur = *head;
-	while (cur) {
-		if (cmp(cur->data, node->data) > 0) {
-			node->next = cur;
-			if (last) {
-				last->next = node;
-			} else {
-				*head = node;
-			}
-			return ;
-		}
-		last = cur;
-		cur = cur->next;
-	}
-	last->next = node;
-}
-
-void ref_list_sort(t_list **head, int *cmp(void *data1, void *data2)) {
+void ref_list_sort(t_list **head, int (*cmp)(void *data1, void *data2)) {
 	if (!head || !*head) {
 		return ;
 	}
-
-	t_list *sorted_head = *head;
-	*head = (*head)->next;
-	sorted_head->next = NULL;
-
-	while (*head) {
-		t_list *to_insert = *head;
-		*head = (*head)->next;
-		to_insert->next = NULL;
-		ref_helper_insert(&sorted_head, to_insert, cmp);
+	int len = ft_list_size(*head);
+	while (--len) {
+		int inner_iter_count = len;
+		t_list *cur = *head;
+		t_list *next = cur->next;
+		while (inner_iter_count--) {
+			if (cmp(cur->data, next->data) > 0) {
+				cur->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
+				next->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
+				cur->data = (void*)((uintptr_t)cur->data ^ (uintptr_t)next->data);
+			}
+			cur = next;
+			next = cur->next;
+		}
 	}
-	*head = sorted_head;
 }
 
 t_list *inc_list(int len) {
@@ -619,6 +598,7 @@ t_list *inc_list(int len) {
 	t_list *head = malloc(sizeof *head);
 	head->data = malloc(sizeof(int));
 	*(int*)(head->data) = 0;
+	head->next = NULL;
 	t_list *cur = head;
 
 	for (int i = 1; i < len; i++) {
@@ -682,6 +662,7 @@ bool cmp_list(t_list *a, t_list *b) {
 	if (!a || !b) {
 		return false;
 	}
+	assert(0);
 }
 
 void test_push_front() {
@@ -712,9 +693,473 @@ void test_push_front() {
 	}
 }
 
+int cmp_int(void *a, void *b) {
+	if (!a && !b) {
+		return 0;
+	}
+	if (!a) {
+		return -1;
+	}
+	if (!b) {
+		return 1;
+	}
+	return *(int *)a - *(int *)b;
+}
+
+t_list *dup_list(const t_list *src) {
+	t_list *head = NULL;
+	t_list *tail = NULL;
+
+	while (src) {
+		t_list *n = (t_list *)calloc(1, sizeof(*n));
+		if (src->data) {
+			int *v = (int *)malloc(sizeof(int));
+			*v = *(int *)src->data;
+			n->data = v;
+		} else {
+			n->data = NULL;
+		}
+		n->next = NULL;
+		if (!head) {
+			head = n;
+		} else {
+			tail->next = n;
+		}
+		tail = n;
+		src = src->next;
+	}
+	return head;
+}
+
+int count_value(t_list *list, int value) {
+	int c = 0;
+	while (list) {
+		if (list->data && *(int *)list->data == value) {
+			c++;
+		}
+		list = list->next;
+	}
+	return c;
+}
+
+void print_list(const char *tag, t_list *head) {
+	printf("%s (len=%d): ", tag, ref_list_size(head));
+	while (head) {
+		if (!head->data) {
+			printf("[NULL] ");
+		} else {
+			printf("%d ", *(int*)head->data);
+		}
+		head = head->next;
+	}
+	printf("\n");
+}
+
+bool list_eq(t_list *a, t_list *b) {
+	while (a && b) {
+		if ((!a->data) != (!b->data)) {
+			return false;
+		}
+		if (a->data && b->data && *(int*)a->data != *(int*)b->data) {
+			return false;
+		}
+		a = a->next;
+		b = b->next;
+	}
+	return a == NULL && b == NULL;
+}
+
+int list_has_cycle(t_list *head) {
+	t_list *slow = head;
+	t_list *fast = head;
+	while (fast && fast->next) {
+		slow = slow->next;
+		fast = fast->next->next;
+		if (slow == fast) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void print_diff(t_list *exp, t_list *got) {
+	int idx = 0;
+	while (exp && got) {
+		int ev = exp->data ? *(int*)exp->data : 0;
+		int gv = got->data ? *(int*)got->data : 0;
+
+		if ((!exp->data) != (!got->data)) {
+			printf("  first diff @idx=%d: expected %s, got %s\n",
+				idx, exp->data ? "value" : "NULL", got->data ? "value" : "NULL");
+			return;
+		}
+		if (exp->data && got->data && ev != gv) {
+			printf("  first diff @idx=%d: expected %d, got %d\n", idx, ev, gv);
+			return;
+		}
+		exp = exp->next;
+		got = got->next;
+		idx++;
+	}
+	if (!exp && got) {
+		printf("  got has extra nodes starting @idx=%d (next=%p)\n", idx, (void*)got);
+	} else if (exp && !got) {
+		printf("  got ended early @idx=%d (expected continues, next=%p)\n", idx, (void*)exp);
+	} else {
+		assert(0);
+	}
+}
+
+void debug_remove_if_case(const char *label, t_list *base, int refv, t_list *exp, t_list *got) {
+	printf("\n=== %s (ref=%d) ===\n", label, refv);
+
+	print_list("base", base);
+	print_list("exp ", exp);
+	print_list("got ", got);
+
+	printf("checks: eq=%s, got_cycle=%s, exp_cycle=%s\n",
+		list_eq(exp, got) ? "YES" : "NO",
+		list_has_cycle(got) ? "YES" : "NO",
+		list_has_cycle(exp) ? "YES" : "NO"
+	);
+
+	print_diff(exp, got);
+}
+
+void test_remove_if(void) {
+	{
+		int refv = 0;
+		ref_list_remove_if(NULL, &refv, cmp_int, free);
+		ft_list_remove_if(NULL, &refv, cmp_int, free);
+		passes++;
+	}
+
+	{
+		t_list *a = NULL;
+		t_list *b = NULL;
+		int refv = 0;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+		if (a == NULL && b == NULL) {
+			passes++;
+		} else {
+			fails++;
+			printf("FAIL: ft_list_remove_if on empty list\n");
+		}
+	}
+
+	for (int len = 0; len <= 8; len++) {
+		t_list *base = inc_list(len);
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = 9999;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b)) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove none", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+
+	for (int len = 1; len <= 8; len++) {
+		t_list *base = inc_list(len);
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = 0;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b)) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove head", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+
+	for (int len = 1; len <= 8; len++) {
+		t_list *base = inc_list(len);
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = len - 1;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b)) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove tail", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+
+	for (int len = 3; len <= 9; len++) {
+		t_list *base = inc_list(len);
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = len / 2;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b)) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove middle", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+
+	for (int len = 0; len <= 8; len++) {
+		t_list *base = inc_list(len);
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		for (int v = 0; v < len; v++) {
+			int refv = v;
+			ref_list_remove_if(&a, &refv, cmp_int, free);
+			ft_list_remove_if(&b, &refv, cmp_int, free);
+		}
+
+		if (a == NULL && b == NULL) {
+			passes++;
+		} else {
+			fails++;
+			printf("FAIL: ft_list_remove_if(remove all) len=%d (a=%p b=%p)\n", len, (void *)a, (void *)b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+
+	{
+		int vals[] = {1, 2, 2, 2, 3, 2, 4};
+		t_list *base = NULL;
+		for (int i = (int)(sizeof(vals) / sizeof(vals[0])) - 1; i >= 0; i--) {
+			int *p = (int *)malloc(sizeof(int));
+			*p = vals[i];
+			ref_list_push_front(&base, p);
+		}
+
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = 2;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b) && count_value(b, 2) == 0) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove duplicates", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+	{
+		int vals[] = {1, 1, 1, 2, 1, 1, 1};
+		t_list *base = NULL;
+		for (int i = (int)(sizeof(vals) / sizeof(vals[0])) - 1; i >= 0; i--) {
+			int *p = (int *)malloc(sizeof(int));
+			*p = vals[i];
+			ref_list_push_front(&base, p);
+		}
+
+		t_list *a = dup_list(base);
+		t_list *b = dup_list(base);
+
+		int refv = 2;
+		ref_list_remove_if(&a, &refv, cmp_int, free);
+		ft_list_remove_if(&b, &refv, cmp_int, free);
+
+		if (cmp_list(a, b) && count_value(b, 2) == 0) {
+			passes++;
+		} else {
+			fails++;
+			debug_remove_if_case("remove all but middle", base, refv, a, b);
+		}
+
+		free_list(base);
+		free_list(a);
+		free_list(b);
+	}
+}
+
+void debug_sort_case(const char *label, t_list *base, t_list *exp, t_list *got) {
+	printf("\n=== %s ===\n", label);
+	print_list("base", base);
+	print_list("exp ", exp);
+	print_list("got ", got);
+
+	printf("checks: eq=%s, got_cycle=%s, exp_cycle=%s, len_exp=%d len_got=%d\n",
+		list_eq(exp, got) ? "YES" : "NO",
+		list_has_cycle(got) ? "YES" : "NO",
+		list_has_cycle(exp) ? "YES" : "NO",
+		ref_list_size(exp), ref_list_size(got)
+	);
+
+	print_diff(exp, got);
+
+	if (list_has_cycle(got)) {
+		printf("hint: got has a cycle; common causes are wrong next rewiring or missing tail->next = NULL.\n");
+	}
+	if (ref_list_size(exp) != ref_list_size(got)) {
+		printf("hint: length changed; common causes are losing nodes, overwriting begin_list, or skipping links.\n");
+	}
+}
+
+t_list *make_list_from_ints_with_nulls(const int *vals, const int *is_null, int n) {
+	t_list *h = NULL;
+	for (int i = n - 1; i >= 0; i--) {
+		if (is_null && is_null[i]) {
+			ref_list_push_front(&h, NULL);
+		} else {
+			int *p = (int *)malloc(sizeof(int));
+			*p = vals[i];
+			ref_list_push_front(&h, p);
+		}
+	}
+	return h;
+}
+
+t_list *make_list_from_ints(const int *vals, int n) {
+	return make_list_from_ints_with_nulls(vals, NULL, n);
+}
+
+void run_sort_case(const char *label, t_list *base) {
+	t_list *exp = dup_list(base);
+	t_list *got = dup_list(base);
+
+	ref_list_sort(&exp, cmp_int);
+	ft_list_sort(&got, cmp_int);
+
+	bool ok = true;
+
+	if (list_has_cycle(got)) {
+		ok = false;
+	}
+	if (ref_list_size(exp) != ref_list_size(got)) {
+		ok = false;
+	}
+	if (!cmp_list(exp, got)) {
+		ok = false;
+	}
+
+	if (ok) {
+		passes++;
+	} else {
+		fails++;
+		debug_sort_case(label, base, exp, got);
+	}
+
+	free_list(base);
+	free_list(exp);
+	free_list(got);
+}
+
+void test_list_sort(void) {
+	{
+		ref_list_sort(NULL, cmp_int);
+		ft_list_sort(NULL, cmp_int);
+		passes++;
+	}
+
+	{
+		t_list *a = NULL;
+		t_list *b = NULL;
+		ref_list_sort(&a, cmp_int);
+		ft_list_sort(&b, cmp_int);
+		if (a == NULL && b == NULL) {
+			passes++;
+		} else {
+			fails++; printf("FAIL: ft_list_sort on empty list\n");
+		}
+	}
+
+	{
+		int v[] = {42};
+		run_sort_case("single", make_list_from_ints(v, 1));
+	}
+
+	{
+		int v[] = {0,1,2,3,4,5,6};
+		run_sort_case("already sorted", make_list_from_ints(v, (int)(sizeof(v)/sizeof(v[0]))));
+	}
+
+	{
+		int v[] = {6,5,4,3,2,1,0};
+		run_sort_case("reverse", make_list_from_ints(v, (int)(sizeof(v)/sizeof(v[0]))));
+	}
+
+	{
+		int v[] = {3,1,2,2,5,3,3,0,2};
+		run_sort_case("duplicates", make_list_from_ints(v, (int)(sizeof(v)/sizeof(v[0]))));
+	}
+
+	{
+		int v[] = {0,-1,5,-10,3,-1,2};
+		run_sort_case("negatives", make_list_from_ints(v, (int)(sizeof(v)/sizeof(v[0]))));
+	}
+
+	for (int it = 0; it < 200; it++) {
+		int n = (rand() % 15); // 0..14
+		int *vals = (int *)malloc((size_t)n * sizeof(int));
+		if (!vals) {
+			break;
+		}
+
+		for (int i = 0; i < n; i++) {
+			vals[i] = (rand() % 21) - 10; // -10..10
+		}
+
+		t_list *base = make_list_from_ints(vals, n);
+
+		char label[64];
+		snprintf(label, sizeof(label), "random small #%d (n=%d)", it, n);
+		run_sort_case(label, base);
+
+		free(vals);
+	}
+
+	{
+		int v[] = {5, 1, 3, 2, 4, 0};
+		int is_null[] = {0, 1, 0, 0, 1, 0};
+		t_list *base = make_list_from_ints_with_nulls(v, is_null, 6);
+		run_sort_case("with NULL data", base);
+	}
+}
+
 void test_lists() {
 	test_list_size();
 	test_push_front();
+	test_remove_if();
+	test_list_sort();
 }
 
 int main(void) {
