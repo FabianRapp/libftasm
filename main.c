@@ -238,25 +238,18 @@ void test_cpy(char *str) {
 	free(new_mine);
 }
 
-void test_cmp_eq(char *str) {
-	int std = strcmp(str, str);
-	int mine = ft_strcmp(str, str);
-	if (std != mine) {
-		(fails)++;
-		printf("FAIL: strcmp(%s, %s) -> mine: %d\n", str, str, mine);
-	} else {
-		(passes)++;
-	}
-}
-
-void test_cmp_diff(char *str1, char *str2) {
+void test_cmp(char *str1, char *str2) {
 	int std = strcmp(str1, str2);
 	int mine = ft_strcmp(str1, str2);
-	if (std != mine) {
-		(fails)++;
-		printf("FAIL: strcmp(%s, %s) -> std: %d; mine: %d\n", str1, str2, std, mine);
+
+	int ok = (std == 0 && mine == 0) || (std < 0 && mine < 0) || (std > 0 && mine > 0);
+
+	if (!ok) {
+		fails++;
+		printf("FAIL: strcmp(%s, %s) -> std: %d; mine: %d\n",
+			str1, str2, std, mine);
 	} else {
-		(passes)++;
+		passes++;
 	}
 }
 
@@ -345,14 +338,14 @@ void test_strs() {
 		char *str1 = strgenerator(i);
 		test_strlen(str1);
 		test_cpy(str1);
-		test_cmp_eq(str1);
+		test_cmp(str1, str1);
 		test_strdup(str1);
 		for (int j = 0; j < iter_count; j++) {
 			if (j == i) {
 				continue ;
 			}
 			char *str2 = strgenerator(j);
-			test_cmp_diff(str1, str2);
+			test_cmp(str1, str2);
 			free(str2);
 		}
 		free(str1);
