@@ -27,7 +27,7 @@ int fails = 0;
  [x] - ft_write.s
  [x] - remove passes/fails pointer passing and simply make them global
  [x] - valgrind issues with some test cases
- [ ] - compile warning:
+ [x] - compile warning:
 	-> /usr/bin/ld: warning: ft_strlen.o: missing .note.GNU-stack section implies executable stack
 	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
  [x] - rename bonus files with '_bonus' suffix
