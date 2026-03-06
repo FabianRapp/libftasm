@@ -1,4 +1,4 @@
-#include "libftasm.h"
+#include "libasm.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -93,7 +93,8 @@ int ref_ft_atoi_base(char *str, char *base_str) {
 	return ret * sign;
 }
 
-static void test_one_atoi_base(const char *s, const char *b) {
+#ifdef BONUS
+void test_one_atoi_base(const char *s, const char *b) {
 	int ref = ref_ft_atoi_base((char *)s, (char *)b);
 	int got = ft_atoi_base((char *)s, (char *)b);
 
@@ -108,7 +109,7 @@ static void test_one_atoi_base(const char *s, const char *b) {
 	}
 }
 
-static void test_atoi_base_basic(void) {
+void test_atoi_base_basic(void) {
 	test_one_atoi_base("", "0123456789");
 	test_one_atoi_base("2", "0123456789");
 	test_one_atoi_base("+2", "0123456789");
@@ -156,6 +157,7 @@ static void test_atoi_base_invalid_bases(void) {
 	test_one_atoi_base("123", "0 123456789");
 	test_one_atoi_base("123", "0\t123456789");
 }
+#endif //BONUS
 
 char *strgenerator(int idx) {
 	if (idx == 0) {
@@ -507,6 +509,8 @@ void test_data() {
 		free(data1);
 	}
 }
+
+#ifdef BONUS
 
 void test_atoi_base(void) {
 	test_atoi_base_basic();
@@ -1153,13 +1157,17 @@ void test_lists() {
 	test_remove_if();
 	test_list_sort();
 }
+#endif // BONUS
 
 int main(void) {
 	srand(time(NULL));
 	test_strs();
 	test_data();
+
+#ifdef BONUS
 	test_atoi_base();
 	test_lists();
+#endif // BONUS
 
 	printf("%d passes and %d fails\n", passes, fails);
 	return 0;
