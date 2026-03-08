@@ -1,8 +1,5 @@
 ;size_t ft_strlen(const char *s);
 
-;todo:
-; rep prefix, usefull here?
-
 section .text
 	global ft_strlen
 
@@ -75,37 +72,6 @@ ft_strlen:
 
 .ret:
 	ret
-
-
-
-;ft_strlen:
-;	xor rax, rax
-;.loop:
-;	cmp byte [rdi], 0
-;	je .ret
-;	inc rax
-;	inc rdi
-;	jmp .loop
-;.ret:
-;	ret
-
-
-;.alignment:
-;	push rax
-;	;vmovdqu ymm0, [rdi + rax] ; ;load 128 byte
-;	add rax, rdi ; div lower 64 bits
-;	xor rdx, rdx ; div upper 64 bits
-;	mov rcx, 32
-;	div rcx ; rdx = (rdi + cur_len) % 32
-;	; rdx now holds the distance to the alignment
-;	pop rax
-;.alignment_loop:
-;	cmp byte [rdi + rax], 0
-;	je .ret
-;	inc rax
-;	dec rdx
-;	test rdx, rdx
-;	jnz .alignment_loop
 
 
 section .note.GNU-stack noalloc noexec nowrite progbits

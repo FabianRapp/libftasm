@@ -1179,5 +1179,6 @@ int main(void) {
 		fprintf(stderr, "Tests FAILED\n");
 		return 1;
 	}
+	//printf("%d\n", getpagesize());
 	return 0;
 }
