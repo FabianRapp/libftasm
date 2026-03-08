@@ -30,13 +30,18 @@ $(NAME): $(OBJ_DIR) $(SRC) $(OBJ)
 test: main.c $(NAME)
 	cc $(FLAGS) main.c $(NAME) -o test
 
+bench: fclean
+	make test FLAGS="-Ofast"
+	cc -Ofast bench.c $(NAME) -o bench
+	./test && ./bench
+
 bonus:
 	make SRC_FILES="$(BASE_FILES) $(BONUS_FILES)" FLAGS="$(FLAGS) -DBONUS"
 
 $(OBJ_DIR):
 	mkdir -p $@
 
-obj/%.o: src/%.r
+obj/%.o: src/%.s $(OBJ_DIR)
 	nasm -f elf64 -g -F dwarf $< -o $@
 
 clean:
@@ -54,4 +59,4 @@ dep:
 val: re
 	valgrind --leak-check=full --show-leak-kinds=all -s --track-origins=yes ./a.out
 
-.PHONY: all test bonus dep compile re clean fclean val
+.PHONY: all test bonus dep compile re clean fclean val bench

@@ -31,6 +31,11 @@ int fails = 0;
 	-> /usr/bin/ld: warning: ft_strlen.o: missing .note.GNU-stack section implies executable stack
 	-> /usr/bin/ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
  [x] - rename bonus files with '_bonus' suffix
+Optimizations with speed diff to stdlib:
+ [ ] - ft_strcmp.s
+ [ ] - ft_strcpy.s
+ [ ] - ft_strdup.s
+ [ ] - ft_strlen.s
 */
 
 bool ft_isspace(char c) {
@@ -1169,6 +1174,10 @@ int main(void) {
 	test_lists();
 #endif // BONUS
 
-	printf("%d passes and %d fails\n", passes, fails);
+	fprintf(stderr, "%d passes and %d fails\n", passes, fails);
+	if (fails) {
+		fprintf(stderr, "Tests FAILED\n");
+		return 1;
+	}
 	return 0;
 }
